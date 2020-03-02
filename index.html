@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Cut copy paste</title>
+</head>
+<body oncopy="return false" oncut="return false" onpaste="return false">
+	<div><h1>when you select this text,copy or cut button doesnt get activated.You can't control c or control v as they are disabled.But howver,they are on front end and can be manipulated.So cant be relied upon for validation<h1></div>
+
+		<div id="origin">
+			<textarea id="target"  style="width:100%">Helllo there,Select this text and check both copy and paste buttons.Also check the cut buttons.</textarea>
+			<button id = "copy" disabled data-processing = "false" onclick = "clipboard.copy()"> Copy</button>
+			<button id = "cut" disabled data-processing = "false" onclick = "clipboard.cut()"> CUT </button>
+			<button id = "paste" disabled data-processing = "false" onclick = "clipboard.paste()">Paste</button></div>
+			<div class= "message"></div>
+		</div>
+
+
+
+
+<script type="text/javascript">
+
+// start a iife function
+
+
+var clipboard = function(id,target) {
+    // define a clipboard object
+    var custom_clipboard = {
+        "copied_text": ""
+
+    }
+
+    // add event listener to selection
+    document.addEventListener('selectionchange', function() {
+    check_if_selection_exists(id);
+	});
+
+	function copy() {
+	    let selection = check_if_selection_exists(id);
+	    if (selection) {
+	        // console.log(copy_button);
+	        let selected_text = selection.toString();
+	        let range = window.getSelection().getRangeAt(0);
+	        custom_clipboard["copied_text"]= selected_text;
+	        console.log("custom_clipboard",custom_clipboard["copied_text"]);
+	        document.getElementById(target).focus();
+
+	    } else {
+	        return
+	    }
+
+	}
+
+	function cut(){
+		let selection = check_if_selection_exists(id);
+	    if (selection) {
+	        // console.log(copy_button);
+            let editing_area = document.getElementById(target);
+            let text_to_modify = editing_area.value;
+	        var startPos = editing_area.selectionStart;
+        	var endPos = editing_area.selectionEnd;
+	        let selected_text = selection.toString();
+	        let length_of_selected_text =  selected_text.length;
+	        let position_of_selected_text = selected_text.indexOf(selected_text);
+            let modified_text = text_to_modify.substring(0,startPos)+text_to_modify.substring(startPos+length_of_selected_text);
+            let modified_text_array = modified_text.split(" ");
+            modified_text_array.splice(startPos,length_of_selected_text);
+            console.log(modified_text_array);
+            modified_text = modified_text_array.join(" ");
+            editing_area.value=modified_text;
+            console.log(modified_text);
+	        custom_clipboard["copied_text"]= selected_text;
+	        console.log("custom_clipboard",custom_clipboard["copied_text"]);
+	        document.getElementById("target").focus();
+
+	    } else {
+	        return
+	    }
+
+
+	}
+
+	function insertAtCursor(text_to_insert) {
+    //IE support
+    let editing_area = document.getElementById(target);
+    if (document.selection) {
+        editing_area.focus();
+        sel = document.selection.createRange();
+        sel.text = text_to_insert;
+    }
+    //MOZILLA and others
+    else if (editing_area.selectionStart || editing_area.selectionStart == '0') {
+        // the user may also select while pasting so we need to see if that is the case
+
+
+        console.log(text_to_insert);
+        var startPos = editing_area.selectionStart;
+        var endPos = editing_area.selectionEnd;
+        // get the text in text area
+        let original_text = editing_area.value;
+        // break the text from where the selection started
+        // and insert text after  and now insert the remaijning text
+        // note the length of inserted text is inserted from the last end pos
+
+        console.log(original_text.substring(0, startPos));
+        console.log( original_text.substring(endPos, text_to_insert.length));
+        let first_part = original_text.substring(0, startPos)
+        let second_part = original_text.substring(endPos)
+        let modified_text = first_part+text_to_insert+second_part;
+        editing_area.value = modified_text;
+        console.log(modified_text);
+
+    } else {
+        editing_area.value += text_to_insert;
+    }
+}
+
+
+	function paste() {
+	    insertAtCursor(custom_clipboard["copied_text"],target);
+	}
+
+	return {
+		copy:copy,
+		paste:paste,
+        cut:cut
+	}
+
+
+
+}("origin","target")
+
+
+
+
+function check_if_selection_exists(id) {
+    let selection = window.getSelection();
+    console.log(selection.toString());
+    if (selection.anchorNode.id != id) {
+        document.getElementById("copy").disabled = true;
+        document.getElementById("cut").disabled = true;
+        document.getElementById("paste").disabled = true;
+        return false
+
+    }
+    document.getElementById("copy").disabled = false;
+    document.getElementById("cut").disabled = false;
+    document.getElementById("paste").disabled = false;
+    return selection.toString()
+
+}
+
+
+</script>
+</body>
+</html>
